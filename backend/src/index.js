@@ -10,22 +10,23 @@ const fileRoutes = require("./routes/fileRoutes");
 const app = express();
 
 // CORS configuration for production and development
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  process.env.FRONTEND_URL // Set this in Render environment variables
-].filter(Boolean); // Remove undefined values
-
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // Allow localhost for development
+    if (origin.includes('localhost')) return callback(null, true);
+
+    // Allow all Vercel deployment URLs
+    if (origin.includes('vercel.app')) return callback(null, true);
+
+    // Allow specific production URL if set
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
     }
+
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));

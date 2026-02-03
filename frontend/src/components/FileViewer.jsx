@@ -50,7 +50,8 @@ export default function FileViewer({ file, onClose, canEdit }) {
             alert("Saved successfully!");
         } catch (err) {
             console.error(err);
-            alert("Failed to save.");
+            const errMsg = err.response?.data?.message || "Failed to save.";
+            alert(`Error: ${errMsg}`);
         } finally {
             setSaving(false);
         }

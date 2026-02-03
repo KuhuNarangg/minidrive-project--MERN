@@ -60,14 +60,21 @@ export default function ShareModal({ file, onClose }) {
                         <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
                             Permission
                         </label>
-                        <select
-                            value={permission}
-                            onChange={(e) => setPermission(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 appearance-none"
-                        >
-                            <option value="view">Can View</option>
-                            <option value="edit">Can Edit</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={permission}
+                                onChange={(e) => setPermission(e.target.value)}
+                                className="w-full bg-[#1a1a1a] border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 appearance-none cursor-pointer font-medium"
+                            >
+                                <option value="view" className="bg-[#1a1a1a] text-white py-2">Can View</option>
+                                <option value="edit" className="bg-[#1a1a1a] text-white py-2">Can Edit</option>
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
 
                     {message && (

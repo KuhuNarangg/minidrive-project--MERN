@@ -162,7 +162,15 @@ router.delete("/trash/:id", auth, async (req, res) => {
 
 
 /* ---------- UPDATE FILE CONTENT ---------- */
-router.put("/:id/content", auth, upload.single("file"), async (req, res) => {
+/* ---------- UPDATE FILE CONTENT ---------- */
+const uploadMiddleware = (req, res, next) => {
+  if (req.is('multipart/form-data')) {
+    return upload.single("file")(req, res, next);
+  }
+  next();
+};
+
+router.put("/:id/content", auth, uploadMiddleware, async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
     if (!file) {
@@ -170,67 +178,60 @@ router.put("/:id/content", auth, upload.single("file"), async (req, res) => {
     }
 
     // Check permissions
-    // Check permissions
     const isOwner = file.owner.toString() === req.user.id;
+    // Check if shared with edit permission
     const shared = file.sharedWith.find(s => s.email === req.user.email.toLowerCase());
+    const canEditShared = shared && shared.permission === 'edit';
     const isAdmin = req.user.role === 'admin';
-    const canEdit = isOwner || isAdmin || (shared && shared.permission === 'edit');
 
-    if (!canEdit) {
+    if (!isOwner && !canEditShared && !isAdmin) {
       return res.status(403).json({ message: "Access denied. Edit permission required." });
     }
 
-    // We expect a text file upload or raw body. 
-    // To keep it simple with the existing multer setup, we'll assume the client re-uploads the file 
-    // OR sends text in the body if we want to support direct text connection.
-    // However, multer is middleware here. Let's handle 'text' update via body for simplicity if possible,
-    // BUT since we are using 'upload.single("file")' it might expect multipart.
-
-    // Strategy: If req.file exists, we replace the file on disk.
-    // If req.body.content exists and no file, we write to the existing path (only for text files).
-
-    const fs = require('fs');
-    const path = require('path');
-
+    // Handle File Upload (Multipart)
     if (req.file) {
-      // Multer already saved the new file. 
-      // We should probably delete the old one and point to new, or just update metadata if needed.
-      // But simpler: just update metadata to point to new file info if filename changed, 
-      // or just trust the new file is "the" file.
-      // Actually, standard practice: replace the backing file.
-
-      // Delete old file
+      // Delete old file if it exists
       try {
-        fs.unlinkSync(path.join(__dirname, "../../uploads", file.filename));
+        const oldPath = path.join(__dirname, "../../uploads", file.filename);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
       } catch (e) {
         console.warn("Failed to delete old file", e);
       }
 
       file.filename = req.file.filename;
       file.size = req.file.size;
+      file.mimetype = req.file.mimetype; // Update mimetype too just in case
       file.updatedAt = Date.now();
       await file.save();
 
-      return res.json({ message: "File updated", file });
+      return res.json({ message: "File replaced successfully", file });
     }
 
-    if (req.body.content) {
-      // Text based update
+    // Handle Text Update (JSON Body)
+    if (req.body.content !== undefined) {
       const filePath = path.join(__dirname, "../../uploads", file.filename);
+
+      // Ensure directory exists (just in case)
+      if (!fs.existsSync(path.dirname(filePath))) {
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      }
+
       fs.writeFileSync(filePath, req.body.content);
 
       file.size = Buffer.byteLength(req.body.content);
       file.updatedAt = Date.now();
       await file.save();
 
-      return res.json({ message: "File content updated", file });
+      return res.json({ message: "File content updated successfully", file });
     }
 
-    return res.status(400).json({ message: "No content provided" });
+    return res.status(400).json({ message: "No content provided (file or text)" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Update failed" });
+    console.error("Update Error:", err);
+    res.status(500).json({ message: "Update failed: " + err.message });
   }
 });
 

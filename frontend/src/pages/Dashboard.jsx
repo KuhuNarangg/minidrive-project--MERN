@@ -366,6 +366,18 @@ export default function Dashboard() {
 
                   <div className="space-y-1.5">
                     <h3 className="text-white font-black text-sm tracking-tight truncate group-hover:text-sky-400 transition-colors" title={file.name}>{file.name}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      {file.permission === 'edit' && (
+                        <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[9px] font-black uppercase tracking-wider border border-sky-500/20">
+                          Can Edit
+                        </span>
+                      )}
+                      {file.permission === 'view' && (
+                        <span className="px-1.5 py-0.5 rounded bg-white/10 text-slate-400 text-[9px] font-black uppercase tracking-wider border border-white/10">
+                          View Only
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 lg:gap-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
                       <span>{file.size}</span>
                       <span className="h-1 w-1 bg-slate-700 rounded-full" />
@@ -374,7 +386,7 @@ export default function Dashboard() {
                     {file.owner && <div className="pt-2 text-[10px] text-slate-600 font-bold uppercase truncate">Source: {file.owner}</div>}
                   </div>
 
-                  <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex flex-col gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 translate-x-0 sm:translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex flex-col gap-2 opacity-100 group-hover:scale-105 transition-all duration-300">
                     {activeTab === "My Files" && (
                       <>
                         <button onClick={(e) => { e.stopPropagation(); setFileToShare(file); }} className="h-8 w-8 lg:h-9 lg:w-9 bg-white/10 hover:bg-sky-500 hover:text-black rounded-xl flex items-center justify-center text-slate-300 transition-all shadow-xl">
@@ -401,7 +413,11 @@ export default function Dashboard() {
                     {getFileIcon(file.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-black text-sm truncate group-hover:text-sky-400 transition-colors">{file.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white font-black text-sm truncate group-hover:text-sky-400 transition-colors">{file.name}</h3>
+                      {file.permission === 'edit' && <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[9px] font-black uppercase tracking-wider border border-sky-500/20">Edit</span>}
+                      {file.permission === 'view' && <span className="px-1.5 py-0.5 rounded bg-white/10 text-slate-500 text-[9px] font-black uppercase tracking-wider border border-white/10">View</span>}
+                    </div>
                     <div className="flex items-center gap-2 lg:gap-3 text-[10px] font-black uppercase tracking-widest text-slate-600">
                       <span>{file.size}</span>
                       <span className="h-1 w-1 bg-slate-800 rounded-full" />

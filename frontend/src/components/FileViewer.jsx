@@ -13,15 +13,9 @@ export default function FileViewer({ file, onClose, canEdit }) {
     const isText = file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md") || file.name.endsWith(".js") || file.name.endsWith(".json");
     const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
-    const fileUrl = `http://localhost:4001/uploads/${file.name}`; // Direct access if static serving matches filename. 
-    // Wait, backend serves uploads via /uploads but filename in DB is "timestamp-name". 
-    // Frontend mapping in Dashboard uses file.originalName for display, but we need the actual filename for URL.
-    // Dashboard mapping: id: file._id, name: file.originalName ...
-    // We need to pass the actual stored filename or fetch it. 
-    // Let's assume we need to update Dashboard to pass 'filename' (the stored one) too.
-
-    // Actually, let's fix the Dashboard mapping first to ensure we have the stored filename.
-    // But for now, let's assume we'll fix it.
+    // Use the API base URL but remove /api suffix for uploads
+    const backendUrl = API.defaults.baseURL.replace('/api', '');
+    const fileUrl = `${backendUrl}/uploads/${file.storedFilename}`;
 
     useEffect(() => {
         if (isText) {
@@ -33,14 +27,7 @@ export default function FileViewer({ file, onClose, canEdit }) {
 
     const fetchContent = async () => {
         try {
-            // We can fetch via the static URL if public, or via an auth'd API endpoint if private.
-            // Currently /uploads is static public in index.js: app.use("/uploads", express.static(...))
-            // So fetch should work.
-            // Ideally should be authenticated but for now let's use the static path.
-            // We need the ACTUAL filename from the backend response.
-            // "filename" in DB is like "17384...-test.txt".
-
-            const res = await fetch(`http://localhost:4001/uploads/${file.storedFilename}`);
+            const res = await fetch(fileUrl);
             if (!res.ok) throw new Error("Failed to load content");
             const text = await res.text();
             setContent(text);
@@ -122,7 +109,7 @@ export default function FileViewer({ file, onClose, canEdit }) {
                         <>
                             {isImage && (
                                 <img
-                                    src={`http://localhost:4001/uploads/${file.storedFilename}`}
+                                    src={fileUrl}
                                     alt="Preview"
                                     className="max-w-full max-h-full object-contain"
                                 />
@@ -144,7 +131,7 @@ export default function FileViewer({ file, onClose, canEdit }) {
 
                             {isPDF && (
                                 <iframe
-                                    src={`http://localhost:4001/uploads/${file.storedFilename}`}
+                                    src={fileUrl}
                                     className="w-full h-full border-none"
                                     title="PDF Preview"
                                 />

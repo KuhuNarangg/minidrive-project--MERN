@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [fileToShare, setFileToShare] = useState(null);
   const [fileToView, setFileToView] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -145,7 +146,81 @@ export default function Dashboard() {
         />
       )}
 
-      {/* --- SIDEBAR --- */}
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-gradient-to-br from-sky-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-sky-500/20">
+              <div className="h-4 w-4 bg-black rounded rotate-45" />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-white">MiniDrive</span>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 text-slate-400 hover:text-white transition"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute top-[73px] left-0 right-0 bg-[#080808] border-b border-white/5 p-6 space-y-6" onClick={(e) => e.stopPropagation()}>
+            <nav className="space-y-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => { setActiveTab(item.name); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${activeTab === item.name
+                    ? 'bg-white/10 text-white'
+                    : 'text-slate-500 hover:bg-white/5'
+                    }`}
+                >
+                  <span className={`${activeTab === item.name ? 'text-sky-400' : 'text-slate-600'}`}>
+                    {item.icon}
+                  </span>
+                  {item.name}
+                </button>
+              ))}
+            </nav>
+
+            {user?.role === 'admin' && (
+              <button
+                onClick={() => { navigate('/admin'); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-red-600/5 hover:bg-red-600/10 text-red-500 rounded-xl text-sm font-black uppercase tracking-widest transition border border-red-600/20"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                Admin Portal
+              </button>
+            )}
+
+            <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-xl flex items-center justify-center text-xs font-black text-sky-400 border border-white/5">
+                  {user?.email?.[0].toUpperCase() || "U"}
+                </div>
+                <div className="text-xs">
+                  <p className="text-white font-black truncate max-w-[120px]" title={user?.email}>{user?.email?.split('@')[0] || "User"}</p>
+                  <p className="text-slate-500 font-bold uppercase text-[10px]">{user?.role || "Member"}</p>
+                </div>
+              </div>
+              <button onClick={() => { logout(); navigate("/"); }} className="p-2 text-slate-500 hover:text-red-400 transition" title="Logout">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- DESKTOP SIDEBAR --- */}
       <aside className="hidden lg:flex w-72 border-r border-white/5 flex-col p-8 space-y-10 h-screen sticky top-0 bg-[#080808]">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-gradient-to-br from-sky-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/20">
@@ -211,31 +286,31 @@ export default function Dashboard() {
       </aside>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 p-10 overflow-y-auto h-screen scrollbar-hide">
+      <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto h-screen scrollbar-hide pt-20 lg:pt-10">
 
         {/* TOP BAR: Search & Upload */}
-        <div className="flex flex-col md:flex-row items-center gap-6 mb-12 sticky top-0 z-10 bg-[#050505]/80 backdrop-blur-xl py-4 -mt-4">
+        <div className="flex flex-col gap-4 mb-8 lg:mb-12 sticky top-0 z-10 bg-[#050505]/80 backdrop-blur-xl py-4 -mt-4">
           <div className="flex-1 relative group w-full">
-            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-4 lg:left-5 flex items-center pointer-events-none">
               <svg className="w-4 h-4 text-slate-600 group-focus-within:text-sky-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
             <input
               type="text"
               placeholder="Search your library..."
-              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-sm font-medium focus:outline-none focus:border-sky-500/30 focus:bg-white/[0.05] transition-all"
+              className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-3 lg:py-4 pl-12 lg:pl-14 pr-4 lg:pr-6 text-sm font-medium focus:outline-none focus:border-sky-500/30 focus:bg-white/[0.05] transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full">
             <input id="file-upload" type="file" className="hidden" onChange={handleFileSelect} />
             <label
               htmlFor="file-upload"
-              className={`flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-sm font-black transition-all cursor-pointer border ${selectedFile ? 'bg-sky-500/10 border-sky-500/50 text-sky-400' : 'bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/10'}`}
+              className={`flex-1 flex items-center justify-center gap-2 lg:gap-3 px-4 lg:px-6 py-3 lg:py-4 rounded-2xl text-xs lg:text-sm font-black transition-all cursor-pointer border ${selectedFile ? 'bg-sky-500/10 border-sky-500/50 text-sky-400' : 'bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/10'}`}
             >
               {selectedFile ? (
-                <span className="max-w-[120px] truncate">{selectedFile.name}</span>
+                <span className="max-w-[100px] sm:max-w-[150px] truncate">{selectedFile.name}</span>
               ) : (
                 <>SELECT FILE <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg></>
               )}
@@ -245,7 +320,7 @@ export default function Dashboard() {
               <button
                 onClick={handleUpload}
                 disabled={loading}
-                className="px-8 py-4 bg-sky-500 hover:bg-sky-400 text-black rounded-2xl text-sm font-black uppercase tracking-tighter shadow-lg shadow-sky-500/20 active:scale-95 transition disabled:opacity-50"
+                className="px-6 lg:px-8 py-3 lg:py-4 bg-sky-500 hover:bg-sky-400 text-black rounded-2xl text-xs lg:text-sm font-black uppercase tracking-tighter shadow-lg shadow-sky-500/20 active:scale-95 transition disabled:opacity-50"
               >
                 {loading ? "..." : "UPLOAD"}
               </button>
@@ -256,10 +331,10 @@ export default function Dashboard() {
         {uploadError && <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-bold uppercase tracking-widest">{uploadError}</div>}
 
         <section className="animate-in fade-in duration-700">
-          <div className="flex items-end justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-6 lg:mb-8 gap-4">
             <div>
-              <h2 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">{activeTab}</h2>
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-3 ml-1">Archive {files.length} Assets</p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-none">{activeTab}</h2>
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 lg:mt-3 ml-1">Archive {files.length} Assets</p>
             </div>
 
             <div className="bg-white/[0.03] p-1.5 rounded-2xl flex border border-white/5">
@@ -273,39 +348,39 @@ export default function Dashboard() {
           </div>
 
           {filteredFiles.length === 0 ? (
-            <div className="h-[50vh] flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[40px] bg-white/[0.01]">
-              <div className="h-20 w-20 bg-white/5 rounded-3xl flex items-center justify-center text-3xl mb-6 opacity-30">📂</div>
-              <p className="text-slate-500 font-black uppercase tracking-[0.2em] text-xs">No assets available in this scope</p>
+            <div className="h-[40vh] sm:h-[50vh] flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl lg:rounded-[40px] bg-white/[0.01]">
+              <div className="h-16 w-16 lg:h-20 lg:w-20 bg-white/5 rounded-2xl lg:rounded-3xl flex items-center justify-center text-2xl lg:text-3xl mb-4 lg:mb-6 opacity-30">📂</div>
+              <p className="text-slate-500 font-black uppercase tracking-[0.2em] text-xs px-4 text-center">No assets available in this scope</p>
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
               {filteredFiles.map((file) => (
                 <div
                   key={file.id}
-                  className="group relative p-6 bg-white/[0.03] border border-white/5 rounded-[32px] hover:bg-white/[0.06] hover:border-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  className="group relative p-5 lg:p-6 bg-white/[0.03] border border-white/5 rounded-2xl lg:rounded-[32px] hover:bg-white/[0.06] hover:border-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                   onClick={() => setFileToView(file)}
                 >
-                  <div className="h-16 w-16 bg-white/[0.04] rounded-2xl flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:bg-sky-500/10 transition-all duration-500">
+                  <div className="h-14 w-14 lg:h-16 lg:w-16 bg-white/[0.04] rounded-xl lg:rounded-2xl flex items-center justify-center mb-4 lg:mb-6 text-2xl lg:text-3xl group-hover:scale-110 group-hover:bg-sky-500/10 transition-all duration-500">
                     {getFileIcon(file.type)}
                   </div>
 
                   <div className="space-y-1.5">
                     <h3 className="text-white font-black text-sm tracking-tight truncate group-hover:text-sky-400 transition-colors" title={file.name}>{file.name}</h3>
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <div className="flex items-center gap-2 lg:gap-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
                       <span>{file.size}</span>
                       <span className="h-1 w-1 bg-slate-700 rounded-full" />
-                      <span>{file.date}</span>
+                      <span className="hidden sm:inline">{file.date}</span>
                     </div>
                     {file.owner && <div className="pt-2 text-[10px] text-slate-600 font-bold uppercase truncate">Source: {file.owner}</div>}
                   </div>
 
-                  <div className="absolute top-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                  <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex flex-col gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 translate-x-0 sm:translate-x-2 group-hover:translate-x-0 transition-all duration-300">
                     {activeTab === "My Files" && (
                       <>
-                        <button onClick={(e) => { e.stopPropagation(); setFileToShare(file); }} className="h-9 w-9 bg-white/10 hover:bg-sky-500 hover:text-black rounded-xl flex items-center justify-center text-slate-300 transition-all shadow-xl">
+                        <button onClick={(e) => { e.stopPropagation(); setFileToShare(file); }} className="h-8 w-8 lg:h-9 lg:w-9 bg-white/10 hover:bg-sky-500 hover:text-black rounded-xl flex items-center justify-center text-slate-300 transition-all shadow-xl">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDelete(file.id); }} className="h-9 w-9 bg-white/10 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center text-slate-300 transition-all shadow-xl">
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(file.id); }} className="h-8 w-8 lg:h-9 lg:w-9 bg-white/10 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center text-slate-300 transition-all shadow-xl">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </>
@@ -315,26 +390,26 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 lg:space-y-3">
               {filteredFiles.map((file) => (
                 <div
                   key={file.id}
-                  className="group flex items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.05] hover:border-white/10 transition-all cursor-pointer"
+                  className="group flex items-center gap-4 lg:gap-6 p-3 lg:p-4 bg-white/[0.02] border border-white/5 rounded-xl lg:rounded-2xl hover:bg-white/[0.05] hover:border-white/10 transition-all cursor-pointer"
                   onClick={() => setFileToView(file)}
                 >
-                  <div className="h-12 w-12 bg-white/5 rounded-xl flex items-center justify-center text-2xl group-hover:bg-sky-500/10 transition-colors">
+                  <div className="h-10 w-10 lg:h-12 lg:w-12 bg-white/5 rounded-lg lg:rounded-xl flex items-center justify-center text-xl lg:text-2xl group-hover:bg-sky-500/10 transition-colors flex-shrink-0">
                     {getFileIcon(file.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-black text-sm truncate group-hover:text-sky-400 transition-colors">{file.name}</h3>
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                    <div className="flex items-center gap-2 lg:gap-3 text-[10px] font-black uppercase tracking-widest text-slate-600">
                       <span>{file.size}</span>
                       <span className="h-1 w-1 bg-slate-800 rounded-full" />
-                      <span>{file.date}</span>
-                      {file.owner && <span className="text-slate-700 ml-2">@{file.owner.split('@')[0]}</span>}
+                      <span className="hidden sm:inline">{file.date}</span>
+                      {file.owner && <span className="text-slate-700 ml-2 hidden md:inline">@{file.owner.split('@')[0]}</span>}
                     </div>
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     {activeTab === "My Files" && (
                       <>
                         <button onClick={(e) => { e.stopPropagation(); setFileToShare(file); }} className="p-2 hover:bg-sky-500/10 text-slate-500 hover:text-sky-400 transition-colors rounded-lg">
